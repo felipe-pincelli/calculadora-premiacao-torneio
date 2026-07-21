@@ -1,54 +1,30 @@
-"""Gera assets/icon.ico (troféu dourado simples) usado no .exe e na janela.
+"""Gera assets/icon.ico e assets/icon.png a partir de assets/trophy_source.png.
 
-Script utilitário — roda uma vez durante o desenvolvimento, não é
-empacotado no executável final.
+`trophy_source.png` é a arte final do troféu (fundo já transparente, recortada
+e centralizada num canvas quadrado). Este script só redimensiona/exporta essa
+arte nos formatos que o app e o instalador do .exe precisam — roda uma vez
+durante o desenvolvimento, não é empacotado no executável final.
+
+Se um dia trocar a arte do troféu, basta substituir `trophy_source.png` por
+uma nova imagem (fundo transparente, quadrada) e rodar este script de novo.
 """
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
-SIZE = 256
-GOLD = (212, 175, 55, 255)
-GOLD_DARK = (168, 130, 30, 255)
-BG = (0, 0, 0, 0)
-
-
-def draw_trophy() -> Image.Image:
-    img = Image.new("RGBA", (SIZE, SIZE), BG)
-    draw = ImageDraw.Draw(img)
-
-    cx = SIZE // 2
-
-    # Taça (corpo do troféu)
-    cup_top = 40
-    cup_bottom = 130
-    draw.pieslice([cx - 70, cup_top, cx + 70, cup_top + 140], 0, 180, fill=GOLD)
-    draw.rectangle([cx - 70, cup_top + 70, cx + 70, cup_bottom], fill=GOLD)
-
-    # Alças laterais
-    draw.arc([cx - 110, cup_top + 10, cx - 40, cup_top + 90], 90, 270, fill=GOLD_DARK, width=10)
-    draw.arc([cx + 40, cup_top + 10, cx + 110, cup_top + 90], -90, 90, fill=GOLD_DARK, width=10)
-
-    # Haste
-    draw.rectangle([cx - 14, cup_bottom, cx + 14, cup_bottom + 40], fill=GOLD_DARK)
-
-    # Base
-    draw.rectangle([cx - 50, cup_bottom + 40, cx + 50, cup_bottom + 60], fill=GOLD)
-    draw.rectangle([cx - 65, cup_bottom + 60, cx + 65, cup_bottom + 78], fill=GOLD_DARK)
-
-    return img
+ICO_SIZES = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
+PNG_SIZE = 256
 
 
 def main():
     assets_dir = Path(__file__).parent
-    img = draw_trophy()
+    source = Image.open(assets_dir / "trophy_source.png").convert("RGBA")
 
-    img.save(assets_dir / "icon.png")
-    img.save(
-        assets_dir / "icon.ico",
-        sizes=[(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)],
-    )
+    preview = source.resize((PNG_SIZE, PNG_SIZE), Image.LANCZOS)
+    preview.save(assets_dir / "icon.png")
+
+    source.save(assets_dir / "icon.ico", sizes=ICO_SIZES)
     print("Ícone gerado em assets/icon.ico e assets/icon.png")
 
 
